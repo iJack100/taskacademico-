@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskAcadémico — Gestor de Tareas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f4f0;
+      --bg-tertiary: #efefeb;
+      --text-primary: #1a1a18;
+      --text-secondary: #6b6b67;
+      --text-tertiary: #9e9e9a;
+      --border-light: rgba(0,0,0,0.10);
+      --border-mid: rgba(0,0,0,0.18);
+      --border-strong: rgba(0,0,0,0.28);
+      --purple-light: #EEEDFE;
+      --purple-mid: #7F77DD;
+      --purple-dark: #534AB7;
+      --green-light: #EAF3DE;
+      --green-mid: #639922;
+      --green-dark: #3B6D11;
+      --amber-light: #FAEEDA;
+      --amber-mid: #BA7517;
+      --amber-dark: #854F0B;
+      --red-light: #FCEBEB;
+      --red-mid: #E24B4A;
+      --red-dark: #A32D2D;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1c1c1a;
+        --bg-secondary: #252523;
+        --bg-tertiary: #111110;
+        --text-primary: #f0eeea;
+        --text-secondary: #9e9e9a;
+        --text-tertiary: #6b6b67;
+        --border-light: rgba(255,255,255,0.08);
+        --border-mid: rgba(255,255,255,0.14);
+        --border-strong: rgba(255,255,255,0.22);
+        --purple-light: #26215C;
+        --purple-mid: #AFA9EC;
+        --purple-dark: #CECBF6;
+        --green-light: #173404;
+        --green-mid: #97C459;
+        --green-dark: #C0DD97;
+        --amber-light: #412402;
+        --amber-mid: #EF9F27;
+        --amber-dark: #FAC775;
+        --red-light: #501313;
+        --red-mid: #F09595;
+        --red-dark: #F7C1C1;
+      }
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-xl);
+      border: 0.5px solid var(--border-mid);
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 1.5rem 1.25rem;
+      border-bottom: 0.5px solid var(--border-light);
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: -0.4px;
+      color: var(--text-primary);
+    }
+
+    .header p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .badge-new {
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: flex;
+      gap: 8px;
+      padding: 1rem 1.5rem;
+      border-bottom: 0.5px solid var(--border-light);
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .stat-number.total  { color: var(--text-primary); }
+    .stat-number.pend   { color: var(--amber-mid); }
+    .stat-number.done   { color: var(--green-mid); }
+
+    /* ── ADD FORM ── */
+    .add-section {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 0.5px solid var(--border-light);
+    }
+
+    .add-section label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field:focus {
+      border-color: var(--purple-mid);
+      box-shadow: 0 0 0 3px rgba(127,119,221,0.15);
+    }
+
+    .field.error { border-color: var(--red-mid); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 8px; }
+
+    .btn-add {
+      height: 38px;
+      padding: 0 20px;
+      background: var(--purple-mid);
+      color: #EEEDFE;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-add:hover  { background: var(--purple-dark); }
+    .btn-add:active { transform: scale(0.97); }
+
+    /* ── FILTERS ── */
+    .filters {
+      display: flex;
+      gap: 6px;
+      padding: 0.75rem 1.5rem;
+      border-bottom: 0.5px solid var(--border-light);
+      overflow-x: auto;
+    }
+
+    .filter-btn {
+      font-size: 12px;
+      padding: 5px 14px;
+      border: 0.5px solid var(--border-mid);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover  { border-color: var(--border-strong); color: var(--text-primary); }
+    .filter-btn.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+
+    /* ── TASK LIST ── */
+    .task-list { padding: 0.25rem 1.5rem 1.5rem; }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: 26px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 0.85rem 0;
+      border-bottom: 0.5px solid var(--border-light);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .task-item:last-child { border-bottom: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .check-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-mid);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .check-btn:hover { border-color: var(--purple-mid); background: var(--purple-light); }
+
+    .check-btn.done {
+      background: var(--green-mid);
+      border-color: var(--green-mid);
+    }
+
+    .check-btn.done::after {
+      content: '';
+      display: block;
+      width: 5px;
+      height: 9px;
+      border: 2px solid var(--green-light);
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    .task-info { min-width: 0; }
+
+    .task-name {
+      font-size: 14px;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+
+    .task-name.done {
+      color: var(--text-tertiary);
+      text-decoration: line-through;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .badge-materia { background: var(--purple-light); color: var(--purple-dark); }
+    .badge-alta    { background: var(--red-light);    color: var(--red-dark);    }
+    .badge-media   { background: var(--amber-light);  color: var(--amber-dark);  }
+    .badge-baja    { background: var(--green-light);  color: var(--green-dark);  }
+
+    .task-date { font-size: 11px; color: var(--text-secondary); }
+    .task-date.overdue { color: var(--red-dark); font-weight: 500; }
+
+    .task-actions { display: flex; gap: 4px; }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+
+    .icon-btn.edit:hover  { border-color: var(--purple-mid); color: var(--purple-mid); background: var(--purple-light); }
+    .icon-btn.del:hover   { border-color: var(--red-mid);    color: var(--red-mid);    background: var(--red-light);    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 20px;
+    }
+
+    .empty-state p { font-size: 14px; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--bg-primary);
+      border-radius: var(--radius-xl);
+      border: 0.5px solid var(--border-mid);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 400px;
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal h2 {
+      font-size: 17px;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .modal-field {
+      margin-bottom: 8px;
+    }
+
+    .modal-field label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+
+    .btn-cancel {
+      height: 38px;
+      padding: 0 16px;
+      border: 0.5px solid var(--border-mid);
+      background: transparent;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .btn-cancel:hover { background: var(--bg-secondary); }
+
+    .btn-save {
+      flex: 1;
+      height: 38px;
+      background: var(--purple-mid);
+      color: #EEEDFE;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+
+    .btn-save:hover { background: var(--purple-dark); }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 1.25rem;
+      border-top: 0.5px solid var(--border-light);
+      font-size: 11px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .btn-add { width: 100%; }
+      .stats-row { gap: 6px; }
+      .stat { padding: 0.6rem 0.5rem; }
+      .stat-number { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="card">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div>
+          <h1>TaskAcadémico</h1>
+          <p>Organiza tus materias y fechas de entrega</p>
+        </div>
+        <span class="badge-new">v1.0</span>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat"><div class="stat-number total" id="s-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-number pend"  id="s-pend">0</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat"><div class="stat-number done"  id="s-done">0</div><div class="stat-label">Completadas</div></div>
+      </div>
+
+      <!-- ADD FORM -->
+      <div class="add-section">
+        <label>Nueva tarea</label>
+        <input class="field" type="text" id="in-title" placeholder="Nombre de la tarea..." />
+        <div class="grid-2">
+          <input class="field" type="text"   id="in-materia"  placeholder="Materia (ej. Cálculo)" />
+          <input class="field" type="date"   id="in-date" />
+        </div>
+        <div class="grid-3">
+          <select class="field" id="in-priority">
+            <option value="media">Prioridad media</option>
+            <option value="alta">Prioridad alta</option>
+            <option value="baja">Prioridad baja</option>
+          </select>
+          <select class="field" id="in-type">
+            <option value="Tarea">Tarea</option>
+            <option value="Examen">Examen</option>
+            <option value="Proyecto">Proyecto</option>
+            <option value="Lectura">Lectura</option>
+            <option value="Laboratorio">Laboratorio</option>
+          </select>
+          <button class="btn-add" onclick="addTask()">+ Agregar</button>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
+        <button class="filter-btn" onclick="setFilter('pending',this)">Pendientes</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">Completadas</button>
+        <button class="filter-btn" onclick="setFilter('overdue',this)">Vencidas</button>
+      </div>
+
+      <!-- TASK LIST -->
+      <div class="task-list" id="task-list"></div>
+
+      <!-- FOOTER -->
+      <div class="footer">TaskAcadémico &mdash; Proyecto académico &mdash; HTML5 · CSS3 · JS · localStorage</div>
+
+    </div><!-- /card -->
+  </div><!-- /wrapper -->
+
+  <!-- MODAL EDIT -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2>Editar tarea</h2>
+      <div class="modal-field">
+        <label>Nombre</label>
+        <input class="field" type="text" id="edit-title" placeholder="Nombre de la tarea" style="width:100%;" />
+      </div>
+      <div class="modal-field">
+        <label>Materia</label>
+        <input class="field" type="text" id="edit-materia" placeholder="Materia" style="width:100%;" />
+      </div>
+      <div class="grid-2" style="margin-top:0;">
+        <div class="modal-field">
+          <label>Tipo</label>
+          <select class="field" id="edit-type" style="width:100%;">
+            <option value="Tarea">Tarea</option>
+            <option value="Examen">Examen</option>
+            <option value="Proyecto">Proyecto</option>
+            <option value="Lectura">Lectura</option>
+            <option value="Laboratorio">Laboratorio</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Prioridad</label>
+          <select class="field" id="edit-priority" style="width:100%;">
+            <option value="media">Media</option>
+            <option value="alta">Alta</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Fecha de entrega</label>
+        <input class="field" type="date" id="edit-date" style="width:100%;" />
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-save"   onclick="saveEdit()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'taskacademico_v1';
+    let tasks = [];
+    let filter = 'all';
+    let editingId = null;
+
+    /* ── STORAGE ── */
+    function loadTasks() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        tasks = raw ? JSON.parse(raw) : [];
+      } catch (e) { tasks = []; }
+      if (!tasks.length) seedDemo();
+      render();
+    }
+
+    function saveTasks() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch (e) {}
+    }
+
+    /* ── DEMO DATA ── */
+    function seedDemo() {
+      const today = new Date();
+      const fmt = d => d.toISOString().slice(0, 10);
+      const mk = (title, days, materia, priority, type, done = false) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() + days);
+        return { id: Date.now() + Math.random(), title, materia, priority, type, date: fmt(d), done };
+      };
+      tasks = [
+        mk('Ensayo sobre la Revolución Francesa',  3,  'Historia',     'alta',  'Tarea'),
+        mk('Ejercicios de integrales',              1,  'Cálculo',      'alta',  'Tarea'),
+        mk('Informe de laboratorio de química',     5,  'Química',      'media', 'Laboratorio'),
+        mk('Lectura cap. 4 — Constitución',         7,  'Derecho',      'baja',  'Lectura'),
+        mk('Presentación de proyecto final',       -2,  'Programación', 'alta',  'Proyecto', true),
+        mk('Examen parcial de Física',              2,  'Física',       'alta',  'Examen'),
+      ];
+    }
+
+    /* ── ADD ── */
+    function addTask() {
+      const titleEl = document.getElementById('in-title');
+      const title   = titleEl.value.trim();
+      if (!title) {
+        titleEl.classList.add('error');
+        titleEl.focus();
+        setTimeout(() => titleEl.classList.remove('error'), 1200);
+        return;
+      }
+      tasks.unshift({
+        id:       Date.now(),
+        title,
+        materia:  document.getElementById('in-materia').value.trim()  || 'General',
+        priority: document.getElementById('in-priority').value,
+        type:     document.getElementById('in-type').value,
+        date:     document.getElementById('in-date').value || '',
+        done:     false,
+      });
+      titleEl.value = '';
+      document.getElementById('in-materia').value = '';
+      document.getElementById('in-date').value    = '';
+      saveTasks();
+      render();
+    }
+
+    /* ── TOGGLE DONE ── */
+    function toggleDone(id) {
+      const t = tasks.find(t => t.id === id);
+      if (t) { t.done = !t.done; saveTasks(); render(); }
+    }
+
+    /* ── DELETE ── */
+    function deleteTask(id) {
+      if (!confirm('¿Eliminar esta tarea?')) return;
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks(); render();
+    }
+
+    /* ── EDIT ── */
+    function openEdit(id) {
+      editingId = id;
+      const t = tasks.find(t => t.id === id);
+      document.getElementById('edit-title').value    = t.title;
+      document.getElementById('edit-materia').value  = t.materia;
+      document.getElementById('edit-type').value     = t.type || 'Tarea';
+      document.getElementById('edit-priority').value = t.priority;
+      document.getElementById('edit-date').value     = t.date;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+      editingId = null;
+    }
+
+    function saveEdit() {
+      const t = tasks.find(t => t.id === editingId);
+      if (t) {
+        t.title    = document.getElementById('edit-title').value.trim()    || t.title;
+        t.materia  = document.getElementById('edit-materia').value.trim()  || t.materia;
+        t.type     = document.getElementById('edit-type').value;
+        t.priority = document.getElementById('edit-priority').value;
+        t.date     = document.getElementById('edit-date').value;
+        saveTasks(); render();
+      }
+      closeModal();
+    }
+
+    /* ── FILTER ── */
+    function setFilter(f, btn) {
+      filter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    /* ── HELPERS ── */
+    function isOverdue(dateStr) {
+      if (!dateStr) return false;
+      return new Date(dateStr + 'T23:59:59') < new Date();
+    }
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    /* ── RENDER ── */
+    function render() {
+      const total   = tasks.length;
+      const pending = tasks.filter(t => !t.done).length;
+      const done    = tasks.filter(t => t.done).length;
+
+      document.getElementById('s-total').textContent = total;
+      document.getElementById('s-pend').textContent  = pending;
+      document.getElementById('s-done').textContent  = done;
+
+      let visible = tasks;
+      if (filter === 'pending') visible = tasks.filter(t => !t.done);
+      if (filter === 'done')    visible = tasks.filter(t =>  t.done);
+      if (filter === 'overdue') visible = tasks.filter(t => !t.done && isOverdue(t.date));
+
+      const list = document.getElementById('task-list');
+
+      if (!visible.length) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>No hay tareas en esta sección</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = visible.map(t => {
+        const over = !t.done && isOverdue(t.date);
+        return `
+          <div class="task-item">
+            <button class="check-btn ${t.done ? 'done' : ''}" onclick="toggleDone(${t.id})" title="${t.done ? 'Marcar pendiente' : 'Marcar completada'}"></button>
+            <div class="task-info">
+              <div class="task-name ${t.done ? 'done' : ''}">${escHtml(t.title)}</div>
+              <div class="task-meta">
+                <span class="badge badge-materia">${escHtml(t.materia)}</span>
+                ${t.type ? `<span class="badge" style="background:var(--bg-secondary);color:var(--text-secondary);">${escHtml(t.type)}</span>` : ''}
+                <span class="badge badge-${t.priority}">${t.priority}</span>
+                ${t.date ? `<span class="task-date ${over ? 'overdue' : ''}">${over ? '⚠ Vencida · ' : ''}${fmtDate(t.date)}</span>` : ''}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="icon-btn edit" onclick="openEdit(${t.id})" title="Editar">✎</button>
+              <button class="icon-btn del"  onclick="deleteTask(${t.id})" title="Eliminar">×</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    /* ── KEYBOARD SHORTCUT ── */
+    document.getElementById('in-title').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    /* ── INIT ── */
+    loadTasks();
+  </script>
+
+</body>
+</html>
